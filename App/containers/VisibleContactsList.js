@@ -1,5 +1,10 @@
 import { connect } from 'react-redux'
 import { 
+	addContact,
+	contactErrored,
+	contactsLoading,
+	contactsErrored,
+	contactsFetched,
 	toggleContact,
 	VisibilityFilters } from '../actions/Actions.js'
 import ContactsList from '../components/ContactsList.js'
@@ -15,7 +20,9 @@ const getVisibleContacts = (contacts, filter) => {
 
 const mapStateToProps = state => {
 	return {
-		contacts: getVisibleContacts(state.contacts, state.visibilityFilter)
+		contacts: getVisibleContacts(state.contacts, state.visibilityFilter),
+		hasErrored: state.hasErrored,
+		isLoading: state.isLoading
 	}
 }
 
@@ -23,6 +30,15 @@ const mapDispatchToProps = dispatch => {
 	return {
 		onContactClick: index => {
 			dispatch(toggleContact(index))
+		},
+		addContact: (name, number) => {
+			dispatch(addContact(name, number))
+		},
+		didFail: (bool) => {
+			dispatch(contactsErrored(bool))
+		},
+		loading: (bool) => {
+			dispatch(contactsLoading(bool))
 		}
 	}
 }

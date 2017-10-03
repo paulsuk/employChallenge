@@ -5,6 +5,7 @@ import {
 	TouchableOpacity,
 	View
 } from 'react-native';
+import Contacts from 'react-native-contacts';
 
 class AddContact extends Component {
 	constructor(props) {
@@ -24,6 +25,18 @@ class AddContact extends Component {
 	}
 
 	onButtonPress() {
+		var newPerson = {
+			familyName: this.state.name,
+			phoneNumbers: [
+				{label: 'mobile', number: this.state.number}
+			]
+		}
+
+		Contacts.addContact(newPerson, (err) => {
+			if (err === 'denied') {
+				console.log(err)
+			}
+		})
 		this.props.addContact(this.state.name, this.state.number)
 	}
 

@@ -7,11 +7,17 @@ import {
 	Text
 } from 'react-native';
 import {
-	setVisibilityFilter,
 	VisibilityFilters
 } from '../actions/Actions.js'
 
 class Filters extends Component {
+	constructor(props) {
+		super(props)
+		this.state = {
+			activeFilter: props.activeFilter
+		} 
+	}
+
 	render() {
 		return (
 			<View style={styles.bar}>
@@ -21,42 +27,62 @@ class Filters extends Component {
 	}
 
 	renderFilters() {
-		var activeFilter = this.props.activeFilter;
+		var activeFilter = this.state.activeFilter;
 		return Object.keys(VisibilityFilters).map(filter => {
-			var style = [styles.button];
+			var style = [styles.text];
 			if (activeFilter === filter) {
 				style.push(styles.current);
+			} else {
+				style.push(styles.notSelected);
 			}
 			return (
 				<TouchableOpacity
 					key = {filter}
-					style = {style}
-					onPress = {setVisibilityFilter()}>
-					<Text style={styles.text}>{filter}</Text>
+					style = {styles.button}>
+					<Text 
+						style={style}
+						onPress = {() => {this.onPress(filter)}}>
+							{filter}
+					</Text>
 				</TouchableOpacity>
 			)
 		})
+	}
+
+	componentWillReceiveProps (nextProps) {
+		if (nextProps.activeFilter) {
+			if (nextProps.activeFilter !== this.props.activeFilter) {
+				this.setState({activeFilter: nextProps.activeFilter})
+			}
+		}
+	}
+
+	onPress(filter) {
+		console.log(filter)
+		this.props.onPress(filter)
 	}
 }
 
 const styles = StyleSheet.create({
 	bar: {
-		backgroundColor: '#81c04d',
 		flexDirection: 'row',
 		height: 50
 	},
 	button: {
 		flex: 1,
-		alignItems: 'center'
+		backgroundColor: 'red'
 	},
 	text: {
 		flex: 1,
 		color: '#fff',
 		textAlign: 'center',
-		fontWeight: 'bold'
+		alignContent: 'center'
 	},
  	current: {
 		backgroundColor: '#70a743'
+	},
+	notSelected: {
+		backgroundColor: '#81c04d'
 	}
 })
 

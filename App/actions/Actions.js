@@ -5,6 +5,8 @@ import _ from 'lodash';
  * Action Types
  */
 export const ADD_CONTACT = 'ADD_CONTACT'
+export const CONTACTS_LOADING = 'CONTACTS_LOADING'
+export const CONTACTS_ERRORED = 'CONTACTS_ERRORED'
 export const SET_VISIBILITY_FILTER = 'SET_VISIBILITY_FILTER'
 export const TOGGLE_CONTACT = 'TOGGLE_CONTACT'
 
@@ -38,5 +40,19 @@ export function setVisibilityFilter(filter) {
 	return {
 		type: SET_VISIBILITY_FILTER,
 		filter
+	}
+}
+
+export function contactsErrored(bool) {
+	return {
+		type: CONTACTS_ERRORED,
+		hasErrored: bool
+	}
+}
+
+export function contactsLoading(bool) {
+	return {
+		type: CONTACTS_LOADING,
+		isLoading: bool
 	}
 }

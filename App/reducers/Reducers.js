@@ -4,6 +4,8 @@ import {
 	ADD_CONTACT,
 	TOGGLE_CONTACT,
 	SET_VISIBILITY_FILTER,
+	CONTACTS_LOADING,
+	CONTACTS_ERRORED,
 	VisibilityFilters
 } from '../actions/Actions.js'
 const { SHOW_ALL } = VisibilityFilters
@@ -13,7 +15,7 @@ function visibilityFilter(state = SHOW_ALL, action) {
 		case SET_VISIBILITY_FILTER:
 			return action.filter
 		default:
-			return state
+			return SHOW_ALL
 	}
 }
 
@@ -30,23 +32,35 @@ function contacts(state = [], action) {
 				}
 			]
 		case TOGGLE_CONTACT:
-			return state.map((contact, index) => {
-				if (index == action.index) {
+			var res =  state.map((contact, index) => {
+				if (contact.id === action.id) {
 					return Object.assign({}, contact, {
 						selected: !contact.selected
 					})
 				}
 				return contact
 			})
+			return res
 		default:
 			return state
 	}
 }
 
+export function loadingItems(state = false, action) {
+    switch (action.type) {
+        case CONTACTS_ERRORED:
+            return action.hasErrored;
+        case CONTACTS_LOADING:
+        	return action.isLoading;
+        default:
+            return state;
+    }
+}
 
 const contactsApp = combineReducers({
 	visibilityFilter,
-	contacts
+	contacts,
+	loadingItems,
 })
 
 export default contactsApp

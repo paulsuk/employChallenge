@@ -8,14 +8,16 @@ import {
 import { 
 	Provider,
 	connect } from 'react-redux';
-import { createStore } from 'redux'
+import { createStore, applyMiddleware } from 'redux'
+import thunk from 'redux-thunk';
+
 import reducers from './reducers/Reducers.js'
 import AddNewContact from './containers/AddNewContact.js'
 import VisibleContactsList from './containers/VisibleContactsList.js'
 import FiltersLink from './containers/FiltersLink.js'
 import StatusBarBackground from './components/StatusBar.js'
 
-let store = createStore(reducers)
+let store = createStore(reducers, applyMiddleware(thunk))
 
 export default class App extends Component {
 	render() {

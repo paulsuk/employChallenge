@@ -1,74 +1,130 @@
 import React, { Component } from 'react' 
 import {
+	ActivityIndicator,
 	TouchableHighlight,
 	StyleSheet,
 	View,
 	Text,
-	ListView 
+	SectionList 
 } from 'react-native';
-import SelectedToggle from './SelectedToggle.js'
+import Contacts from 'react-native-contacts';
+import SelectedToggle from './SelectedToggle.js';
+import _ from 'lodash'
 
 class ContactsList extends Component {
 	constructor(props) {
 		super(props)
+		console.log('setting state for first time')
 		this.state = {
-			dataSource: new ListView.DataSource({
-				rowHasChanged: (r1, r2) => r1 !== r2
-			}),
-		}; 
-		if (this.props.contacts) {
-			this.state.dataSource = this.state.dataSource.cloneWithRows(this.props.contacts)
+ 			dataSource: [],
+			hasErrored: false,
+			isLoading: false
 		}
+	}
+
+	async componentDidMount() {
+		this.loadAllContacts()
+		if (this.props.contacts) {
+			var data = await this.groupAndReduceData(this.props.contacts)
+		} else {
+			var data = []
+			this.setState({
+				dataSource: data,
+				hasErrored: this.state.hasErrored,
+				isLoading: this.state.isLoading
+			})
+		}
+	}
+
+	async loadAllContacts() {
+		this.setState({dataSource: this.state.dataSource, isLoading: true, hasErrored: false}, Contacts.getAll((err, contacts) => {
+				if (!err) {
+					for(var i = 0; i < contacts.length; i++) {
+						let name = contacts[i].givenName + ' ' + contacts[i].familyName;
+						let number = contacts[i].phoneNumbers[0].number;
+						this.props.addContact(name, number)
+					}
+					this.setState({dataSource: this.state.dataSource, isLoading: false, hasErrored: false})
+				} else {
+					this.setState({dataSource: this.state.dataSource, isLoading: false, hasErrored: true})
+				}
+			})
+		)
 	}
 
 	componentWillReceiveProps (nextProps) {
 		if (nextProps.contacts) {
 			if (nextProps.contacts !== this.props.contacts) {
-				this.state.dataSource = this.state.dataSource.cloneWithRows(nextProps.contacts)
+				this.setState({dataSource: this.groupAndReduceData(nextProps.contacts), isLoading: this.props.isLoading, hasErrored: this.props.hasErrored})
 			}
 		}
 	}
 
-	renderRow = (contact) => {
-		return this.renderContactItem(contact)
+	groupAndReduceData(data) {
+		let dataSource = _.groupBy(data, d => d.name.charAt(0))
+		dataSource = _.reduce(dataSource, (acc, next, index) => {
+			acc.push({
+				key: index,
+				data: next
+			})
+			return acc
+		}, [])
+		return dataSource
 	}
 
-	renderContactItem(contact) {
-		return (
-			<TouchableHighlight
-				underlayColor = '#0c00f9'
-				key = {contact.id}
-				onPress = {() => {
-					this.onContactClick(contact.index);
-				}}>
-				<View style={styles.row}>
+	renderItem = (item) => {
+		style = [styles.row]
+		if (item.item.selected) {
+			style.push(styles.selected)
+		}
+		return (<TouchableHighlight
+				key = {item.item.id}>
+				<View style={style}>
 					<SelectedToggle
-						selected={contact.selected}
-						onChecked={() => this.onContactClick(contact.id)}
-						onUnchecked={() => this.onContactClick(contact.id)} />
+						selected={item.item.selected}
+						onChecked={() => this.onContactClick(item.item.id)}
+						onUnchecked={() => this.onContactClick(item.item.id)} />
 			        <Text style={[styles.text, styles.name]}>
-			        	{contact.name}
+			        	{item.item.name}
 			        </Text>
 			        <Text style={[styles.text, styles.number]}>
-			        	{contact.number}
+			        	{item.item.number}
 			        </Text>
 				</View>
 			</TouchableHighlight>	
 		)
 	}
 
+	renderHeader = (headerItem) => {
+		return <Text>{headerItem.section.key}</Text>
+	}
+
 	render() {
-		return (
-			<ListView
-				dataSource = {this.state.dataSource}
-				renderRow = {this.renderRow} 
-				style={styles.listContainer}
-			/>
-			);
+		if (this.state.isLoading) {
+			return (
+				<View style={styles.listContainer}>
+					<ActivityIndicator
+						animating={this.state.isLoading}
+				        style={[styles.centering, {height: 80}]}
+				        size="large"/>
+				</View>
+				);
+		} else {
+			return (
+				<View style={styles.listContainer}>
+					<SectionList
+						renderItem = {this.renderItem}
+						renderSectionHeader = {this.renderHeader}
+						sections = {this.state.dataSource}
+						keyExtractor={(item) => item.name}
+						style={styles.listContainer}
+					/>
+				</View>
+				);
+		}
 	}
 
 	onContactClick(index) {
-		console.log('yo')
 		this.props.onContactClick(index)
 	}
 }
@@ -79,6 +135,9 @@ const styles = StyleSheet.create({
 		alignSelf: 'stretch',
 		backgroundColor: '#d3d3d3'
 	},
+	selected: {
+		backgroundColor: '#f1f1f1'
+	},
 	row: {
 		flexDirection: 'row',
 		paddingTop: 10,
@@ -86,7 +145,7 @@ const styles = StyleSheet.create({
 		paddingLeft: 10,
 		paddingRight: 10,
 		height: 60,
-		alignItems: 'center'
+		alignItems: 'center',
 	},
 	text: {
 		flexDirection: 'row',
@@ -99,7 +158,14 @@ const styles = StyleSheet.create({
 	},
 	number: {
 		textAlign: 'right'
-	}
+	},
+	centering: {
+		flex: 1,
+		alignSelf: 'stretch',
+	    alignItems: 'center',
+	    justifyContent: 'center',
+	    padding: 8,
+  },
 });
 
 export default ContactsList;
