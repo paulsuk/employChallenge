@@ -14,7 +14,6 @@ import _ from 'lodash'
 class ContactsList extends Component {
 	constructor(props) {
 		super(props)
-		console.log('setting state for first time')
 		this.state = {
  			dataSource: [],
 			hasErrored: false,
@@ -62,6 +61,9 @@ class ContactsList extends Component {
 
 	groupAndReduceData(data) {
 		let dataSource = _.groupBy(data, d => d.name.charAt(0))
+		for (var key in dataSource) {
+			dataSource[key].sort( function(a,b){ var x = a.name, y = b.name; return x === y ? 0 : x < y ? -1 : 1; } );
+		}
 		dataSource = _.reduce(dataSource, (acc, next, index) => {
 			acc.push({
 				key: index,
@@ -69,6 +71,10 @@ class ContactsList extends Component {
 			})
 			return acc
 		}, [])
+		dataSource.sort(function(a, b) {
+			var x = a.key, y = b.key; 
+			return x === y ? 0 : x < y ? -1 : 1;
+		})
 		return dataSource
 	}
 

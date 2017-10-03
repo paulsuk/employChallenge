@@ -58,7 +58,6 @@ class Filters extends Component {
 	}
 
 	onPress(filter) {
-		console.log(filter)
 		this.props.onPress(filter)
 	}
 }
